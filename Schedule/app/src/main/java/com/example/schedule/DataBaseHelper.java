@@ -19,12 +19,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public DataBaseHelper(Context context){
         super(context, DB_NAME, null, SCHEMA);
-        this.myContext=context;
-        DB_PATH =context.getFilesDir().getPath() + DB_NAME;
+        this.myContext = context;
+        DB_PATH = context.getFilesDir().getPath() + DB_NAME;
     }
 
     void create_db(){
-
         File file = new File(DB_PATH);
         if (!file.exists()) {
             try(InputStream myInput = myContext.getAssets().open(DB_NAME); //Получаем локальную бд как поток

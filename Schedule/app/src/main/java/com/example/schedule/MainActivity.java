@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
@@ -16,12 +15,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
+    public static String[] masTable;
+    public static String selectedGroup  = "";
+
     Spinner groupSpinner;
     DataBaseHelper databaseHelper;
     SQLiteDatabase db;
-    Cursor userCursor;
-    SimpleCursorAdapter userAdapter;
+    Cursor userCursorGroup;
 
     AlertDialog.Builder builder;
 
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        groupSpinner = (Spinner) findViewById(R.id.spinner);
+        groupSpinner = findViewById(R.id.spinner);
 
         databaseHelper = new DataBaseHelper(getApplicationContext());
         databaseHelper.create_db(); //Создаем базу данных
@@ -47,12 +50,17 @@ public class MainActivity extends AppCompatActivity {
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
-        userCursor =  db.rawQuery("select Tittle_group from \"Group\"", null); //Получаем данные из БД в виде курсора
-        String[] arraySpinner = new String[userCursor.getCount()]; //Массив заполнения spinner
-        userCursor.moveToFirst();
+        userCursorGroup =  db.rawQuery("select * from \"Group\"", null); //Получаем данные из БД в виде курсора
+        String[] arraySpinner = new String[userCursorGroup.getCount()];
+        masTable = new String[userCursorGroup.getCount() * 2];
+        userCursorGroup.moveToFirst();
+        int j = 0;
         for(int i = 0; i < arraySpinner.length; i++){ //Переписывваем данные из таблицы в массив
-            arraySpinner[i] = userCursor.getString(0);
-            userCursor.moveToNext();
+            masTable[j] = userCursorGroup.getString(0); //id группы
+            j++;
+            arraySpinner[i] = masTable[j] = userCursorGroup.getString(1); //Название группы
+            j++;
+            userCursorGroup.moveToNext();
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, arraySpinner); //Создаем адаптер
@@ -66,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy(); //Закрываем подключение и курсор
         db.close();
-        userCursor.close();
+        userCursorGroup.close();
     }
 
     public void groupSelection(View view) { //Выбор группы по кнопке "Выбрать"
@@ -76,12 +84,15 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Да", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) { //Переход на страницу с расписанием этой группы
-
+                        selectedGroup = groupSpinner.getSelectedItem().toString();
+                        Intent intent = new Intent(MainActivity.this, ScheduleActivity.class);
+                        startActivity(intent);
                     }
                 })
                 .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        selectedGroup = "";
                         dialogInterface.cancel();
                     }
                 })
@@ -105,5 +116,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+    public String getIdSelectedGroup() {
+        for(int i = 1; i < masTable.length; i++){
+            if(Objects.equals(masTable[i], selectedGroup)) { return masTable[i - 1]; }
+            i++;
+        }
+        return "";
     }
 }
