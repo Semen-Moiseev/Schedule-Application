@@ -1,9 +1,11 @@
 package com.example.schedule;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import androidx.activity.EdgeToEdge;
@@ -15,7 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.Objects;
 
 public class ScheduleActivity extends AppCompatActivity {
-    String[] masTable;
+    public static String[] masTable;
 
     ListView scheduleList;
     DataBaseHelper databaseHelper;
@@ -39,6 +41,12 @@ public class ScheduleActivity extends AppCompatActivity {
         mainActivity = new MainActivity();
 
         scheduleList = findViewById(R.id.scheduleList);
+        scheduleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(ScheduleActivity.this, ScheduleDetailsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         databaseHelper = new DataBaseHelper(getApplicationContext());
         databaseHelper.create_db(); //Создаем базу данных
@@ -54,15 +62,16 @@ public class ScheduleActivity extends AppCompatActivity {
         userCursor.moveToFirst();
 
         for(int i = 0; i < arrayList.length; i++){ //Переписывваем данные из таблицы в массив
-            arrayList[i] = " - " + ConvertID("select * from \"Time_class\"", userCursor.getString(0))
-                    + "\n" + ConvertID("select * from \"Discipline\"", userCursor.getString(1))
-                    + "\n" + ConvertID("select * from \"Type_class\"", userCursor.getString(2))
+            arrayList[i] = " - " + ConvertIdToValue("select * from \"Time_class\"", userCursor.getString(0))
+                    + "\n" + ConvertIdToValue("select * from \"Discipline\"", userCursor.getString(1))
+                    + "\n" + ConvertIdToValue("select * from \"Type_class\"", userCursor.getString(2))
                     + ", " + userCursor.getString(3) + "\n";
+
             userCursor.moveToNext();
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList); //Создаем адаптер
         adapter.setDropDownViewResource(android.R.layout.simple_list_item_1);
-        scheduleList.setAdapter(adapter); //Устанавливаем адаптер в spinner
+        scheduleList.setAdapter(adapter);
     }
 
     public void schedule2Output(View view) { //Показ расписания группы на 2.12
@@ -75,9 +84,9 @@ public class ScheduleActivity extends AppCompatActivity {
         String[] arrayList = new String[userCursor.getCount()];
         userCursor.moveToFirst();
         for (int i = 0; i < arrayList.length; i++) { //Переписывваем данные из таблицы в массив
-            arrayList[i] = " - " + ConvertID("select * from \"Time_class\"", userCursor.getString(0))
-                    + "\n" + ConvertID("select * from \"Discipline\"", userCursor.getString(1))
-                    + "\n" + ConvertID("select * from \"Type_class\"", userCursor.getString(2))
+            arrayList[i] = " - " + ConvertIdToValue("select * from \"Time_class\"", userCursor.getString(0))
+                    + "\n" + ConvertIdToValue("select * from \"Discipline\"", userCursor.getString(1))
+                    + "\n" + ConvertIdToValue("select * from \"Type_class\"", userCursor.getString(2))
                     + ", " + userCursor.getString(3) + "\n";
             userCursor.moveToNext();
         }
@@ -86,7 +95,7 @@ public class ScheduleActivity extends AppCompatActivity {
         scheduleList.setAdapter(adapter); //Устанавливаем адаптер в spinner
     }
 
-    public String ConvertID(String sql, String id){
+    public String ConvertIdToValue(String sql, String id){
         userCursorMinTab =  db.rawQuery(sql, null); //Получаем данные из БД в виде курсора
         masTable = new String[userCursorMinTab.getCount() * 2];
         userCursorMinTab.moveToFirst();
@@ -98,11 +107,17 @@ public class ScheduleActivity extends AppCompatActivity {
         }
 
         for(int i = 0; i < masTable.length; i++){
-            if(Objects.equals(masTable[i], id)) {
-                return masTable[i + 1];
-            }
+            if(Objects.equals(masTable[i], id)) { return masTable[i + 1]; }
             i++;
         }
         return "";
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy(); //Закрываем подключение и курсор
+        db.close();
+        userCursor.close();
+        userCursorMinTab.close();
     }
 }

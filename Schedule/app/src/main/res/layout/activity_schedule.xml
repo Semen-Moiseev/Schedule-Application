@@ -34,13 +34,12 @@
 
     <ListView
         android:id="@+id/scheduleList"
-        android:layout_width="409dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="200dp"
+        android:layout_width="398dp"
+        android:layout_height="523dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/button2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
