@@ -1,9 +1,13 @@
 package com.example.schedule;
 
+import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,13 +18,13 @@ import androidx.core.view.WindowInsetsCompat;
 public class ScheduleDetailsActivity extends AppCompatActivity {
     Spinner tittleSpinner;
     Spinner typeSpinner;
-    Spinner officeSpinner;
+    EditText editTextOffice;
+
     DataBaseHelper databaseHelper;
     SQLiteDatabase db;
     Cursor userCursor;
-    public static String[] masTable;
 
-    ScheduleActivity scheduleActivity;
+    public static String[] masTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,38 +37,55 @@ public class ScheduleDetailsActivity extends AppCompatActivity {
             return insets;
         });
 
-        scheduleActivity = new ScheduleActivity();
-
         tittleSpinner = findViewById(R.id.spinTittle);
         typeSpinner = findViewById(R.id.spinType);
-        officeSpinner = findViewById(R.id.spinOffice);
+        editTextOffice = findViewById(R.id.editTextOffice);
 
         databaseHelper = new DataBaseHelper(getApplicationContext());
         databaseHelper.create_db(); //Создаем базу данных
+
+        GetScheduleData("select * from \"Discipline\"", tittleSpinner); //Запись данные в spinner и editText из БД
+        tittleSpinner.setSelection(ScheduleActivity.masIdSelectedDiscipline[ScheduleActivity.positionSelectedItem]);
+        GetScheduleData("select * from \"Type_class\"", typeSpinner);
+        typeSpinner.setSelection(ScheduleActivity.masIdSelectedType[ScheduleActivity.positionSelectedItem]);
+        editTextOffice.setText(ScheduleActivity.masOffice[ScheduleActivity.positionSelectedItem]);
     }
 
-    @Override
-    public void onResume() {
+    public void GetScheduleData(String sql, Spinner spinner) {
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
-        userCursor =  db.rawQuery("select * from \"Discipline\"", null); //Получаем данные из БД в виде курсора
+        userCursor =  db.rawQuery(sql, null); //Получаем данные из БД в виде курсора
         String[] arraySpinner = new String[userCursor.getCount()];
-        masTable = new String[userCursor.getCount() * 2];
         userCursor.moveToFirst();
-        int j = 0;
         for(int i = 0; i < arraySpinner.length; i++){ //Переписывваем данные из таблицы в массив
-            masTable[j] = userCursor.getString(0); //id группы
-            j++;
-            arraySpinner[i] = masTable[j] = userCursor.getString(1); //Название группы
-            j++;
+            arraySpinner[i] = userCursor.getString(1); //Название группы
             userCursor.moveToNext();
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, arraySpinner); //Создаем адаптер
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        tittleSpinner.setAdapter(adapter); //Устанавливаем адаптер в spinner
-        //tittleSpinner.setSelection(); В скобках поставить id из списка, который надо выбрать в спиннере
+        spinner.setAdapter(adapter); //Устанавливаем адаптер в spinner
+    }
+
+    public void Save(View view) {
+        ContentValues cv = new ContentValues();
+        cv.put("id_discipline", tittleSpinner.getSelectedItemId() + 1);
+        cv.put("id_Type", typeSpinner.getSelectedItemId() + 1);
+        cv.put("Office", editTextOffice.getText().toString());
+        db.update("Class", cv, "id_class = " + ScheduleActivity.globalIdSelectedItem, null);
+        goHome();
+    }
+
+    public void Delete(View view) {
+        db.delete("Class", "id_class = ?", new String[]{String.valueOf(ScheduleActivity.globalIdSelectedItem)});
+        goHome();
+    }
+
+    private void goHome(){
+        db.close();
+        Intent intent = new Intent(this, ScheduleActivity.class);
+        startActivity(intent);
     }
 
     @Override

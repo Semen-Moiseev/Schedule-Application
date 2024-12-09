@@ -27,6 +27,14 @@ public class ScheduleActivity extends AppCompatActivity {
 
     MainActivity mainActivity;
 
+    public static int positionSelectedItem;
+    public static String globalIdSelectedItem;
+
+    public static String[] masOffice;
+    public static int[] masIdSelectedDiscipline;
+    public static int[] masIdSelectedType;
+    String[] masIdGlobalItems;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +51,9 @@ public class ScheduleActivity extends AppCompatActivity {
         scheduleList = findViewById(R.id.scheduleList);
         scheduleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                positionSelectedItem = position;
+                globalIdSelectedItem = masIdGlobalItems[position];
+
                 Intent intent = new Intent(ScheduleActivity.this, ScheduleDetailsActivity.class);
                 startActivity(intent);
             }
@@ -56,12 +67,21 @@ public class ScheduleActivity extends AppCompatActivity {
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
-        userCursor =  db.rawQuery("select id_time, id_discipline, id_type, Office from \"Class\" where Data = 1.12 and id_group = "
+        userCursor =  db.rawQuery("select id_time, id_discipline, id_type, Office, id_class from \"Class\" where Data = 1.12 and id_group = "
                 + mainActivity.getIdSelectedGroup(), null); //Получаем данные из БД в виде курсора
         String[] arrayList = new String[userCursor.getCount()];
         userCursor.moveToFirst();
+        masOffice = new String[userCursor.getCount()];
+        masIdSelectedDiscipline = new int[userCursor.getCount()];
+        masIdSelectedType = new int[userCursor.getCount()];
+        masIdGlobalItems = new String[userCursor.getCount()];
 
         for(int i = 0; i < arrayList.length; i++){ //Переписывваем данные из таблицы в массив
+            masOffice[i] = userCursor.getString(3);
+            masIdSelectedDiscipline[i] = Integer.parseInt(userCursor.getString(1)) - 1;
+            masIdSelectedType[i] = Integer.parseInt(userCursor.getString(2)) - 1;
+            masIdGlobalItems[i] = userCursor.getString(4);
+
             arrayList[i] = " - " + ConvertIdToValue("select * from \"Time_class\"", userCursor.getString(0))
                     + "\n" + ConvertIdToValue("select * from \"Discipline\"", userCursor.getString(1))
                     + "\n" + ConvertIdToValue("select * from \"Type_class\"", userCursor.getString(2))
@@ -78,12 +98,21 @@ public class ScheduleActivity extends AppCompatActivity {
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
-        userCursor = db.rawQuery("select id_time, id_discipline, id_type, Office from \"Class\" where Data = 2.12 and id_group = "
+        userCursor = db.rawQuery("select id_time, id_discipline, id_type, Office, id_class from \"Class\" where Data = 2.12 and id_group = "
                 + mainActivity.getIdSelectedGroup(), null); //Получаем данные из БД в виде курсора
-
         String[] arrayList = new String[userCursor.getCount()];
         userCursor.moveToFirst();
+        masOffice = new String[userCursor.getCount()];
+        masIdSelectedDiscipline = new int[userCursor.getCount()];
+        masIdSelectedType = new int[userCursor.getCount()];
+        masIdGlobalItems = new String[userCursor.getCount()];
+
         for (int i = 0; i < arrayList.length; i++) { //Переписывваем данные из таблицы в массив
+            masOffice[i] = userCursor.getString(3);
+            masIdSelectedDiscipline[i] = Integer.parseInt(userCursor.getString(1)) - 1;
+            masIdSelectedType[i] = Integer.parseInt(userCursor.getString(2)) - 1;
+            masIdGlobalItems[i] = userCursor.getString(4);
+
             arrayList[i] = " - " + ConvertIdToValue("select * from \"Time_class\"", userCursor.getString(0))
                     + "\n" + ConvertIdToValue("select * from \"Discipline\"", userCursor.getString(1))
                     + "\n" + ConvertIdToValue("select * from \"Type_class\"", userCursor.getString(2))
