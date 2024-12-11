@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,8 @@ public class ScheduleActivity extends AppCompatActivity {
     public static String[] masTable;
 
     ListView scheduleList;
+    Button btnAdd;
+
     DataBaseHelper databaseHelper;
     SQLiteDatabase db;
     Cursor userCursorMinTab;
@@ -29,7 +32,7 @@ public class ScheduleActivity extends AppCompatActivity {
 
     public static int positionSelectedItem;
     public static String globalIdSelectedItem;
-
+    public static String dataBtn = "";
     public static String[] masOffice;
     public static int[] masIdSelectedDiscipline;
     public static int[] masIdSelectedType;
@@ -48,6 +51,7 @@ public class ScheduleActivity extends AppCompatActivity {
 
         mainActivity = new MainActivity();
 
+        btnAdd = findViewById(R.id.btnAdd);
         scheduleList = findViewById(R.id.scheduleList);
         scheduleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -64,6 +68,9 @@ public class ScheduleActivity extends AppCompatActivity {
     }
 
     public void schedule1Output(View view) { //Показ расписания группы на 1.12
+        dataBtn = "1.12";
+        btnAdd.setVisibility(View.VISIBLE); //btnAdd.setVisibility(View.INVISIBLE);
+
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
@@ -86,7 +93,6 @@ public class ScheduleActivity extends AppCompatActivity {
                     + "\n" + ConvertIdToValue("select * from \"Discipline\"", userCursor.getString(1))
                     + "\n" + ConvertIdToValue("select * from \"Type_class\"", userCursor.getString(2))
                     + ", " + userCursor.getString(3) + "\n";
-
             userCursor.moveToNext();
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList); //Создаем адаптер
@@ -95,6 +101,9 @@ public class ScheduleActivity extends AppCompatActivity {
     }
 
     public void schedule2Output(View view) { //Показ расписания группы на 2.12
+        dataBtn = "2.12";
+        btnAdd.setVisibility(View.VISIBLE);
+
         super.onResume(); //Открываем подключение
         db = databaseHelper.open();
 
@@ -140,6 +149,11 @@ public class ScheduleActivity extends AppCompatActivity {
             i++;
         }
         return "";
+    }
+
+    public void ClickAddSchedule(View view) {
+        Intent intent = new Intent(ScheduleActivity.this, AddScheduleActivity.class);
+        startActivity(intent);
     }
 
     @Override
